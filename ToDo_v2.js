@@ -15,10 +15,14 @@ const displayList = (e) => {
     li.appendChild(document.createTextNode(`Name: ${name} Age: ${age}`));
     //create edit btn
     let editbtn = document.createElement("button");
+    //creatin class for btn
+    editbtn.className = "list-btn";
     editbtn.textContent = "Edit";
-    editbtn.onclick = () => editListItem({ id, name, age });
+    editbtn.onclick = () => editListItem({ li, id, name, age });
     //delete btn
     let deletebtn = document.createElement("button");
+    //create class for btn
+    deletebtn.className = "list-btn";
     deletebtn.textContent = "Delete";
     deletebtn.onclick = () => deleteListItem({ id, name, age });
     // append buttons
@@ -33,6 +37,12 @@ const displayList = (e) => {
 let editing = null;
 
 function addListItem(e) {
+  //veirfy age is greater than 0
+  let checkAge = document.getElementById("userage").value;
+  if (!validAge(checkAge)) {
+    alert("error in age");
+    return;
+  }
   // check if it is in edit mode
   if (editing) {
     // get current list value from localstorage
@@ -40,6 +50,7 @@ function addListItem(e) {
     // update list item of selected ID
     let name = document.getElementById("username").value;
     let age = document.getElementById("userage").value;
+
     const newData = currData.map((el) => {
       if (el.id == editing) {
         el.name = name;
@@ -68,10 +79,22 @@ function addListItem(e) {
   return "";
 }
 
-function editListItem({ id, name, age }) {
+function editListItem({ li, id, name, age }) {
   editing = id;
+  currentLi = li;
   document.getElementById("username").value = name;
   document.getElementById("userage").value = age;
+
+  // currentLi.style.background =
+  //   "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)";
+
+  let changeCTA = document.getElementById("submitbtn");
+  if (changeCTA.innerHTML == "Save") {
+    changeCTA.innerHTML = "Save";
+  } else {
+    changeCTA.innerHTML = "Update";
+  }
+
   return "";
 }
 
@@ -87,3 +110,10 @@ function deleteListItem({ id, name, age }) {
 }
 
 displayList();
+
+//age validation
+function validAge(checkAge) {
+  // let checkAge = document.getElementById("userage").value;
+  checkAge = parseInt(checkAge, 10);
+  return checkAge > 0;
+}
