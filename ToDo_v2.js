@@ -1,8 +1,29 @@
+const getInputFormElement = ({ nameValue, ageValue, inputType, inputName }) => {
+  return `<label for="username">Name</label>
+          <input
+            type='text'
+            name='username'
+            id='username'
+            class="input-data"
+            value=${nameValue}
+            required 
+            disabled />
+          <label for="username">Age</label>
+          <input
+            type='number'
+            name='userage'
+            id='userage'
+            class="input-data"
+            value=${ageValue}
+            required 
+            disabled />`;
+};
+
 const displayList = (e) => {
   document.querySelector(".list-col").innerHTML = "";
   const localuserData = JSON.parse(localStorage.getItem("userData")) || [];
 
-  for (const el of localuserData) {
+  localuserData.forEach((el, i) => {
     if (!el) {
       document.querySelector(".list-col").innerHTML =
         "user data not proper, clearing data. Please try again";
@@ -12,45 +33,47 @@ const displayList = (e) => {
     const { id, name, age } = el;
     let li = document.createElement("li");
     li.id = id ? `${id}` : "def";
-    li.appendChild(document.createTextNode(`Name: ${name} Age: ${age}`));
+    // li.appendChild(document.createTextNode(`Name: ${name} Age: ${age}`));
+    li.innerHTML = getInputFormElement({
+      name: "Name",
+      inputType: "text",
+      inputName: "username",
+      ageValue: age,
+      nameValue: name,
+    });
     //create edit btn
     let editbtn = document.createElement("button");
     //creatin class for btn
     editbtn.className = "list-btn";
+    editbtn.id = "edit-btn";
     editbtn.textContent = "Edit";
     editbtn.onclick = () => editListItem({ li, id, name, age });
     //delete btn
     let deletebtn = document.createElement("button");
     //create class for btn
     deletebtn.className = "list-btn";
+    deletebtn.id = "delete-btn";
     deletebtn.textContent = "Delete";
     deletebtn.onclick = () => deleteListItem({ id, name, age });
     // append buttons
     li.appendChild(editbtn);
     li.appendChild(deletebtn);
+    li.className = "list-item";
     // Finally, append "li" into ul
     document.querySelector(".list-col").appendChild(li);
-  }
+  });
   return "";
 };
 
 let editing = null;
 
-function addListItem(e) {
-  //veirfy age is greater than 0
-  let checkAge = document.getElementById("userage").value;
-  if (!validAge(checkAge)) {
-    alert("error in age");
-    return;
-  }
+function addListItem({ name, age }) {
   // check if it is in edit mode
   if (editing) {
+    validAge(age);
     // get current list value from localstorage
     const currData = JSON.parse(localStorage.getItem("userData")) || [];
     // update list item of selected ID
-    let name = document.getElementById("username").value;
-    let age = document.getElementById("userage").value;
-
     const newData = currData.map((el) => {
       if (el.id == editing) {
         el.name = name;
@@ -64,35 +87,46 @@ function addListItem(e) {
     return "";
     //code
   }
-
   // for creating unique ID
   const timeStamp = new Date().getTime().toString();
   const localuserData = JSON.parse(localStorage.getItem("userData")) || [];
   const id = timeStamp;
-  let name = document.getElementById("username").value;
-  let age = document.getElementById("userage").value;
-  if (!id || !name || !age) return "";
+  let _name = document.getElementById("username").value;
+  let _age = document.getElementById("userage").value;
+  validAge(_age);
+  if (!id || !_name || !_age) return "";
   //push data to local
-  localuserData.push({ id, name, age });
+  localuserData.push({ id, _name, _age });
   localStorage.setItem("userData", JSON.stringify(localuserData));
   displayList();
   return "";
 }
 
 function editListItem({ li, id, name, age }) {
+  // reset
+  displayList();
+  // set editing flag/ value
   editing = id;
-  currentLi = li;
-  document.getElementById("username").value = name;
-  document.getElementById("userage").value = age;
+  // li.style.background = "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)"
+  // add color for editing list
+  const listCollection = document.getElementsByClassName("list-item");
+  for (const list of listCollection) {
+    list.style.background =
+      list?.id == editing
+        ? "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)"
+        : "#cce5ff";
 
-  // currentLi.style.background =
-  //   "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)";
-
-  let changeCTA = document.getElementById("submitbtn");
-  if (changeCTA.innerHTML == "Save") {
-    changeCTA.innerHTML = "Save";
-  } else {
-    changeCTA.innerHTML = "Update";
+    list.querySelector("input#username").disabled =
+      list?.id == editing ? false : true;
+    list.querySelector("input#userage").disabled =
+      list?.id == editing ? false : true;
+    let changeCTA = list.querySelector(`#edit-btn`);
+    if (list?.id == editing) {
+      changeCTA.textContent = "Update";
+      changeCTA.onclick = () => addListItem({ name, age });
+    } else {
+      changeCTA.textContent = "Edit";
+    }
   }
 
   return "";
@@ -113,7 +147,5 @@ displayList();
 
 //age validation
 function validAge(checkAge) {
-  // let checkAge = document.getElementById("userage").value;
-  checkAge = parseInt(checkAge, 10);
-  return checkAge > 0;
+  parseInt(checkAge, 10) > 0 ? " " : alert("error in page");
 }
