@@ -10,14 +10,14 @@
     <div class="container">
       <!-- Form Container -->
       <div id="form-input">
-        <form action="">
+        <form onsubmit="addListItem(event)">
           <label for="username">Name</label>
           <input
             type="text"
             name="username"
             id="username"
             class="input-data"
-            placeholder="Aniket"
+            placeholder=""
             required />
           <label for="userage">Age</label>
           <input
@@ -27,9 +27,7 @@
             class="input-data"
             required />
 
-          <button class="submitbtn" id="submitbtn" onclick="addListItem()">
-            Save
-          </button>
+          <button class="submitbtn" id="submitbtn">Save</button>
           <!-- <button class="deletebtn" id="deletebtn">Delete</button> -->
         </form>
       </div>

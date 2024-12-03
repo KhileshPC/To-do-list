@@ -5,7 +5,7 @@ const getInputFormElement = ({ nameValue, ageValue, inputType, inputName }) => {
             name='username'
             id='username'
             class="input-data"
-            value=${nameValue}
+            value="${nameValue}"
             required 
             disabled />
           <label for="username">Age</label>
@@ -14,7 +14,7 @@ const getInputFormElement = ({ nameValue, ageValue, inputType, inputName }) => {
             name='userage'
             id='userage'
             class="input-data"
-            value=${ageValue}
+            value="${ageValue}"
             required 
             disabled />`;
 };
@@ -67,70 +67,121 @@ const displayList = (e) => {
 
 let editing = null;
 
-function addListItem({ name, age }) {
-  // check if it is in edit mode
-  if (editing) {
-    validAge(age);
-    // get current list value from localstorage
-    const currData = JSON.parse(localStorage.getItem("userData")) || [];
-    // update list item of selected ID
-    const newData = currData.map((el) => {
-      if (el.id == editing) {
-        el.name = name;
-        el.age = age;
-      }
-      return el;
-    });
-    localStorage.setItem("userData", JSON.stringify(newData));
-    displayList();
-    editing = null;
-    return "";
-    //code
-  }
-  // for creating unique ID
-  const timeStamp = new Date().getTime().toString();
-  const localuserData = JSON.parse(localStorage.getItem("userData")) || [];
-  const id = timeStamp;
-  let _name = document.getElementById("username").value;
-  let _age = document.getElementById("userage").value;
-  validAge(_age);
-  if (!id || !_name || !_age) return "";
-  //push data to local
-  localuserData.push({ id, _name, _age });
-  localStorage.setItem("userData", JSON.stringify(localuserData));
-  displayList();
-  return "";
-}
+function addListItem(e) {
+  if (e.preventDefault) e.preventDefault();
 
-function editListItem({ li, id, name, age }) {
-  // reset
-  displayList();
-  // set editing flag/ value
-  editing = id;
-  // li.style.background = "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)"
-  // add color for editing list
+  
   const listCollection = document.getElementsByClassName("list-item");
   for (const list of listCollection) {
-    list.style.background =
-      list?.id == editing
-        ? "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)"
-        : "#cce5ff";
+    const isEditing = list.id === id;
 
-    list.querySelector("input#username").disabled =
-      list?.id == editing ? false : true;
-    list.querySelector("input#userage").disabled =
-      list?.id == editing ? false : true;
+    // Highlight and enable fields for the currently edited item
+    list.style.background = isEditing
+      ? "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)"
+      : "#cce5ff";
+
+    // changing style - disable
+    list.querySelector("input#username").disabled = !isEditing;
+    list.querySelector("input#userage").disabled = !isEditing;
+
+    //get updated aname & age
+    const name = list.querySelector("input#username");
+    const age = list.querySelector("input#userage");
+
+    // toggle edit-update button on
     let changeCTA = list.querySelector(`#edit-btn`);
-    if (list?.id == editing) {
+    if (isEditing) {
       changeCTA.textContent = "Update";
-      changeCTA.onclick = () => addListItem({ name, age });
+      changeCTA.onclick = () => {
+        const updatedName = name.value;
+        const updatedAge = age.value;
+
+        const updatedData = localuserData.map((el) => {
+          if (el.id === id) {
+            return { ...el, name: updatedName, age: updatedAge }; // Update only the edited item
+          }
+          return el;
+        });
+
+        localStorage.setItem("userData", JSON.stringify(updatedData));
+        localuserData = updatedData;
+
+        editing = null;
+        editListItem({ id: null });
+      };
     } else {
       changeCTA.textContent = "Edit";
     }
   }
 
-  return "";
+  }
+  let name = document.getElementById("username").value;
+  let age = document.getElementById("userage").value;
+
+  validAge(age);
+
+  const localuserData = JSON.parse(localStorage.getItem("userData")) || [];
+
+  // Check if in edit mode
+
+  // Create a new entry
+  const id = new Date().getTime().toString();
+  if (!name || !age) return;
+  localuserData.push({ id, name, age });
+  localStorage.setItem("userData", JSON.stringify(localuserData));
+
+  // Clear input fields
+  document.getElementById("username").value = "";
+  document.getElementById("userage").value = "";
+  displayList(); // Refresh the display
 }
+
+editing = null;
+const editListItem = ({ id }) => {
+  // Update the display for editing mode
+  const listCollection = document.getElementsByClassName("list-item");
+  for (const list of listCollection) {
+    const isEditing = list.id === id;
+
+    // Highlight and enable fields for the currently edited item
+    list.style.background = isEditing
+      ? "linear-gradient(90deg, #E91E63 0%, #00BCD4 100%)"
+      : "#cce5ff";
+
+    // changing style - disable
+    list.querySelector("input#username").disabled = !isEditing;
+    list.querySelector("input#userage").disabled = !isEditing;
+
+    //get updated aname & age
+    const name = list.querySelector("input#username");
+    const age = list.querySelector("input#userage");
+
+    // toggle edit-update button on
+    let changeCTA = list.querySelector(`#edit-btn`);
+    if (isEditing) {
+      changeCTA.textContent = "Update";
+      changeCTA.onclick = () => {
+        const updatedName = name.value;
+        const updatedAge = age.value;
+
+        const updatedData = localuserData.map((el) => {
+          if (el.id === id) {
+            return { ...el, name: updatedName, age: updatedAge }; // Update only the edited item
+          }
+          return el;
+        });
+
+        localStorage.setItem("userData", JSON.stringify(updatedData));
+        localuserData = updatedData;
+
+        editing = null;
+        editListItem({ id: null });
+      };
+    } else {
+      changeCTA.textContent = "Edit";
+    }
+  }
+};
 
 function deleteListItem({ id, name, age }) {
   // get current list value from localstorage
@@ -145,7 +196,14 @@ function deleteListItem({ id, name, age }) {
 
 displayList();
 
-//age validation
 function validAge(checkAge) {
-  parseInt(checkAge, 10) > 0 ? " " : alert("error in page");
+  // Ensure age is a number and greater than 0
+  const age = Number(checkAge); // Use `Number` to handle numeric values and strings
+
+  if (isNaN(age) || age <= 0) {
+    alert("Please enter a valid age greater than 0.");
+    throw new Error("Invalid age input.");
+  }
+
+  return true; // Valid age
 }
